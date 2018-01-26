@@ -1,71 +1,50 @@
-using AspNetEmailExample.Models;
-using System.Data.Entity.Migrations;
-
 namespace AspNetEmailExample.Migrations
 {
+    using AspNetEmailExample.Models;
+    using Microsoft.AspNet.Identity;
+    using Microsoft.AspNet.Identity.EntityFramework;
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<ApplicationDbContext>
+    internal sealed class Configuration : DbMigrationsConfiguration<AspNetEmailExample.Models.ApplicationDbContext>
     {
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
         }
 
-
-        protected override void Seed(ApplicationDbContext context)
+        protected override void Seed(AspNetEmailExample.Models.ApplicationDbContext context)
         {
-            this.AddUserAndRoles();
-        }
+            //  This method will be called after migrating to the latest version.
+
+            //  You can use the DbSet<T>.AddOrUpdate() helper extension method 
+            //  to avoid creating duplicate seed data. E.g.
 
 
-        bool AddUserAndRoles()
-        {
-            bool success = false;
 
-            var idManager = new IdentityManager();
-            success = idManager.CreateRole("Admin");
-            if (!success == true) return success;
-
-            success = idManager.CreateRole("CanEdit");
-            if (!success == true) return success;
-
-            success = idManager.CreateRole("User");
-            if (!success) return success;
-
-            success = idManager.CreateRole("Test");
-            if (!success) return success;
-
-            success = idManager.CreateRole("TestII");
-            if (!success) return success;
-
-            var newUser = new ApplicationUser()
+            if (!(context.Users.Any(u => u.UserName == "dj@dj.com")))
             {
-                UserName = "jatten",
-                FirstName = "John",
-                LastName = "Atten",
-                Email = "jatten@typecastexception.com"
-            };
+                var userStore = new UserStore<ApplicationUser>(context);
+                var userManager = new UserManager<ApplicationUser>(userStore);
+                var userToInsert = new ApplicationUser { UserName = "dj@dj.com", /*, PhoneNumber = "0797697898"*/ };
+                userManager.Create(userToInsert, "Password@123");
+            }
 
-            // Be careful here - you  will need to use a password which will 
-            // be valid under the password rules for the application, 
-            // or the process will abort:
-            success = idManager.CreateUser(newUser, "Password1");
-            if (!success) return success;
 
-            success = idManager.AddUserToRole(newUser.Id, "Admin");
-            if (!success) return success;
+            var manager = new UserManager<ApplicationUser>(
+                            new UserStore<ApplicationUser>(
+                                new ApplicationDbContext()));
 
-            success = idManager.AddUserToRole(newUser.Id, "CanEdit");
-            if (!success) return success;
-
-            success = idManager.AddUserToRole(newUser.Id, "User");
-            if (!success) return success;
-
-            return success;
+            for (int i = 0; i < 4; i++)
+            {
+                var user = new ApplicationUser()
+                {
+                    UserName = string.Format("User{0}", i.ToString())
+                };
+                manager.Create(user, string.Format("Password{0}", i.ToString()));
+            }
         }
     }
 }
