@@ -30,3 +30,4 @@ _ReSharper*/
 $tf*/
 packages*/
 App_Data*/
+.lock
